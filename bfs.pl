@@ -1,9 +1,10 @@
-move(a, b).
-move(a, c).
-move(b, d).
-move(b, e).
-move(c, f).
+move(a, b, [0, 1, 0], 1).
+move(a, c, [0, 1, 0], 1).
+move(b, d, [0, 1, 0], 1).
+move(b, f, [1, 1, 1], 1).
+move(c, f, [0, 0, 0], 1).
 
+%Queue
 empty_queue([]).
 
 enqueue(E, [], [E]).
@@ -18,47 +19,54 @@ add_list_to_queue(List, Queue, Newqueue) :-
 member_queue(Element, Queue) :-  
     member(Element, Queue). 
 
+%Set
 empty_set([]). 
 
 member_set(E, S) :- 
     member(E, S).
 
-printsolution([State, nil], _) :- 
-    write(State), nl.
-printsolution([State, Parent], Closed_set) :- 
-    member_set([Parent, Grandparent], Closed_set), 
-    printsolution([Parent, Grandparent], Closed_set), 
-    write(State), nl.
+printsolution([State, nil, Cost], _) :- 
+    write(State), write(' -> Costo acumulado: '), write(Cost), nl.
+
+printsolution([State, Parent, Cost], Closed_set) :- 
+    member_set([Parent, Grandparent, ParentCost], Closed_set), 
+    printsolution([Parent, Grandparent, ParentCost], Closed_set), 
+    write(State), write(' -> Costo acumulado: '), write(Cost), nl.
 
 go(Start, Goal) :-
     empty_queue(Empty_open_queue),
-    enqueue([Start, nil], Empty_open_queue, Open_queue),
+    enqueue([Start, nil, 0], Empty_open_queue, Open_queue),
     empty_set(Closed_set),
     path(Open_queue, Closed_set, Goal).
 
 path(Open_queue, _, _) :-
-     empty_queue(Open_queue),
-     write('Graph searched, no solution found.').
+    empty_queue(Open_queue),
+    write('Graph searched, no solution found.').
 
 path(Open_queue, Closed_set, Goal) :-
-     dequeue([State, Parent], Open_queue, _),
-     State = Goal,
-     write('Solution path is: '), nl,
-     printsolution([State, Parent], Closed_set).
+    dequeue([State, Parent, Cost], Open_queue, _),
+    State = Goal,
+    write('Solution path is: '), nl,
+    printsolution([State, Parent, Cost], Closed_set).
 
 path(Open_queue, Closed_set, Goal) :-
-	dequeue([State, Parent], Open_queue, Rest_open_queue),
-	get_children(State, Rest_open_queue, Closed_set, Children), 
-	add_list_to_queue(Children, Rest_open_queue, New_open_queue), 
-	union([[State, Parent]], Closed_set, New_closed_set), 
-	path(New_open_queue, New_closed_set, Goal), !.
+    dequeue([State, Parent, Cost], Open_queue, Rest_open_queue),
+    get_children(State, Cost, Rest_open_queue, Closed_set, Children),
+    add_list_to_queue(Children, Rest_open_queue, New_open_queue),
+    union([[State, Parent, Cost]], Closed_set, New_closed_set),
+    path(New_open_queue, New_closed_set, Goal), !.
 
-get_children(State, Rest_open_queue, Closed_set, Children) :- 
-	bagof(Child, moves(State, Rest_open_queue, Closed_set, Child), Children). 
+get_children(State, ParentCost, Rest_open_queue, Closed_set, Children) :- 
+    bagof(Child, moves(State, ParentCost, Rest_open_queue, Closed_set, Child), Children). 
 
-get_children(_, _, _, []). 
+get_children(_, _, _, _, []). 
 
-moves(State, Rest_open_queue, Closed_set, [Next,  State]) :-
-     move(State, Next),
-     not(member_queue([Next,_], Rest_open_queue)),
-     not(member_set([Next,_], Closed_set)).
+moves(State, ParentCost, Rest_open_queue, Closed_set, [Next, State, NewCost]) :-
+    move(State, Next, Vector, _), 
+    calcular_valor(Vector, ValorDelPaso),
+    NewCost is ParentCost + ValorDelPaso,
+    not(member_queue([Next, _, _], Rest_open_queue)),
+    not(member_set([Next, _, _], Closed_set)).
+
+calcular_valor([X1, X2, X3], Valor) :-
+    Valor is (X1 * 2) + (X2 * 1) + (X3 * 1).
