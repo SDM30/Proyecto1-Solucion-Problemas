@@ -77,30 +77,25 @@ path(Open_stack, Closed_set, Goal) :-
 
 % OBTENCIÓN DE HIJOS Y ORDENAMIENTO
 
-get_children(State, ParentCost, Rest_Open_stack, Closed_set, ChildrenSorted) :-
+get_children(State, _, Rest_Open_stack, Closed_set, Children) :-
     % A. Se generan todos los hijos posibles calculando su nuevo costo
     findall([NewCost, NewState, State], (
         conecta(State, NewState, Accion),       % Mirar grafo
-        costo(Accion, ActionCost),              % Mirar costo
-        NewCost is ParentCost + ActionCost,     % Sumar costo acumulado
+        costo(Accion, _),              % Mirar costo
+        NewCost is 0,     % Sumar costo acumulado
         
         % Validaciones para no devolverse
         \+ member_stack([_, NewState, _], Rest_Open_stack),
         \+ member_set([_, NewState, _], Closed_set)
-    ), ChildrenUnsorted),
-    
-    % B. ORDENAR POR COSTO (Pide el proyecto)
-    % Al tener el Costo de primero en la lista [Costo, Estado...],
-    % el predicado sort ordena automáticamente de menor a mayor precio.
-    sort(ChildrenUnsorted, ChildrenSorted).
+    ), Children).
 
 % MANEJO DE PILA (STACK)
 empty_stack([]).
 
 stack(Top, Stack, [Top|Stack]).
 
-add_list_to_stack(List, Stack, Newstack) :-
-    append(Stack, List, Newstack).
+add_list_to_stack(List, Stack, Result) :-
+    append(List, Stack, Result).
 
 member_stack(Element, Stack) :-
     member(Element, Stack).
@@ -121,15 +116,15 @@ union([H|T], S, [H|S_new]) :-
 % IMPRIMIR SOLUCION
 
 % Caso base: Inicio (Padre es nil)
-printsolution([Cost, State, nil], _) :-
-    write(State), write(' -> Costo acumulado: '), write(Cost), nl.
+printsolution([_, State, nil], _) :-
+    write(State), nl.
 
 % Caso recursivo: Buscar al padre en el set de cerrados
-printsolution([Cost, State, Parent], Closed_set) :-
+printsolution([_, State, Parent], Closed_set) :-
     % Buscamos al padre en la lista de visitados. 
     % Nota: member busca coincidencia, ignoramos el costo del padre aquí con variables anonimas si es necesario,
     % pero mejor buscamos exacto.
     member_set([ParentCost, Parent, Grandparent], Closed_set),
     
     printsolution([ParentCost, Parent, Grandparent], Closed_set),
-    write(State), write(' -> Costo acumulado: '), write(Cost), nl.
+    write(State), nl.
