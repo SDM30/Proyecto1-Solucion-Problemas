@@ -1,8 +1,9 @@
 % BASE (GRAFO EXPLICITO)
 
 % DESDE EL ESTADO (0, 1, 1) [Robot Der, Todo Sucio]
-conecta((0,1,1), (0,0,1), limpiar).
 conecta((0,1,1), (1,1,1), mover).
+conecta((0,1,1), (0,0,1), limpiar).
+
 
 % --- DESDE EL ESTADO (0, 0, 1) [Robot Der, Der Limpia] ---
 conecta((0,0,1), (1,0,1), mover).
