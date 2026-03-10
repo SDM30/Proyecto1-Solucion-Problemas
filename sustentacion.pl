@@ -67,7 +67,7 @@ path(Open_stack, Closed_set, Goal) :-
     % 1. Obtener hijos 
     get_children(State, Cost, Rest_Open_stack, Closed_set, Children),
     
-    % 2. Agregar hijos a la cola (FIFO - Amplitud)
+    % 2. Agregar hijos a la cola (LIFO - Amplitud)
     add_list_to_stack(Children, Rest_Open_stack, New_Open_stack),
     
     % 3. Agregar actual a visitados (Closed Set)
